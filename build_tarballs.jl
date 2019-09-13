@@ -31,7 +31,6 @@ LDFLAGS=""
 wget https://gmplib.org/download/gmp/gmp-6.1.2.tar.bz2
 tar -xvf gmp-6.1.2.tar.bz2
 cd gmp-6.1.2
-make clean
 CC=$CC_FOR_BUILD CXX=$CXX_FOR_BUILD ./configure --enable-cxx --enable-shared
 LD=$LD_FOR_BUILD LDFLAGS="" CC=$CC_FOR_BUILD CXX=$CXX_FOR_BUILD make -j${nproc}
 make install
