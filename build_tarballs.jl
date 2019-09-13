@@ -9,7 +9,7 @@ version = v"10.5.0"
 sources = [
     "https://www.shoup.net/ntl/ntl-10.5.0.tar.gz" =>
     "b90b36c9dd8954c9bc54410b1d57c00be956ae1db5a062945822bbd7a86ab4d2",
-
+    "./bundled"
 ]
 
 # Bash recipe for building across all platforms
