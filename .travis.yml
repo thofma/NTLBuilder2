@@ -1,0 +1,39 @@
+language: julia
+os:
+  - linux
+julia:
+  - 1.0
+notifications:
+  email: false
+git:
+  depth: 99999999
+cache:
+  timeout: 1000
+  directories:
+    - downloads
+env:
+  global:
+    - BINARYBUILDER_DOWNLOADS_CACHE=downloads
+    - BINARYBUILDER_AUTOMATIC_APPLE=false
+sudo: required
+
+# Before anything else, get the latest versions of things
+before_script:
+  - julia -e 'using Pkg; pkg"add BinaryProvider"; pkg"add BinaryBuilder#master"; Pkg.build()'
+
+script:
+  - julia build_tarballs.jl
+
+
+deploy:
+    provider: releases
+    api_key:
+        # Note; this api_key is only valid for thofma/NTLBuilder2; you need
+        # to make your own: https://docs.travis-ci.com/user/deployment/releases/
+        secure: 4WakMs/E4GRF9lJdxrQ0mH0aHt1XlnFSu2+6WsabVk7ga2ffN5NyaV6jZ2S02/d0R/fOnYJPeS08ZEAxZvqqLZEqtQWqatjl3pR/ijxx6gZvlOLXE4ObbKnd9MIHAms/OA4ZWHB4uhtu2WPNbBsHozAHedl+Bdjnb6iYa/Lya/x0kKg+m6cyWPlTEx3B9QX+teYo2tltHChgkvYVhpJdBJ7x0oemlDCeItYj/2mnNodRaasur19Jer3clQD5K1vjhfCksdoUPr/XymF0uq6iv499+Z/0Won4umMG9QJ5qKzOQEs71pBONPIxQO4QXlq1ga1W2mWljG9r18CgQU+q6bDU5NwYAdFaB0ykR89IE6u5yceN4aSkpySFN93B4rSWdIOyOpKMRTuSOgjzjbo6+/9+9xVwxHu7hCDQv+72N03jmp1FkH+keI5l3IlCv8DKFNTokuIWrOe0HMu+tirLOnriE57WKHP3Zqqs233GznXPkCf/tL57ypW51P99VUbqfK8VocpZVaPnyrF4JgT6xTWP0gM+/IsbhrwjW57ejr1h274dXMyDEdetvCkIucSOUPXEiM2h5t8pRSvxBhlo9M5qq0Er5t7FzQdSSbloSkKgTSALd/tFabzvtm2I4jz9ddG1dWExB5FxyE8IADgvU+Tv6TPAqIpEH2HaCrSDItM=
+    file_glob: true
+    file: products/*
+    skip_cleanup: true
+    on:
+        repo: thofma/NTLBuilder2
+        tags: true
