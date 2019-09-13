@@ -15,9 +15,8 @@ sources = [
 # Bash recipe for building across all platforms
 script = raw"""
 cd $WORKSPACE/srcdir
-wget https://www.mathematik.uni-kl.de/~thofmann/configure.patch
 cd ntl-10.5.0/
-patch -p1 < $WORKSPACE/srcdir/configure.patch 
+atomic_patch -p1 ${WORKSPACE}/srcdir/patches/configure.patch
 cd $WORKSPACE/srcdir
 CC_OLD=$CC
 CC=$CC_FOR_BUILD

@@ -1,0 +1,130 @@
+diff -ruN ntlclean/ntl-10.5.0/src/def_makefile patched_ntl/ntl-10.5.0/src/def_makefile
+--- a/src/def_makefile	2017-07-07 17:05:14.000000000 +0200
++++ b/src/def_makefile	2019-09-13 10:48:30.689988910 +0200
+@@ -287,6 +287,9 @@
+ 
+ LINK = $(CXX) $(NTL_INCLUDE) $(CPPFLAGS) $(CXXAUTOFLAGS) $(CXXFLAGS) $(LDFLAGS)
+ 
++COMPILE_BUILD = $(CXX_FOR_BUILD) $(NTL_INCLUDE) $(CPPFLAGS) $(CXXAUTOFLAGS) $(CXXFLAGS) -c
++
++LINK_BUILD = $(CXX_FOR_BUILD) $(NTL_INCLUDE) $(CPPFLAGS) $(CXXAUTOFLAGS) $(CXXFLAGS) $(LDFLAGS)
+ 
+ 
+ # 'make all' does a complete make, including all setup.
+@@ -306,8 +309,8 @@
+ # setup1 generates the file ../incluse/NTL/mach_desc.h
+ 
+ setup1:
+-	$(COMPILE) MakeDescAux.cpp
+-	$(LINK) -o MakeDesc MakeDesc.cpp MakeDescAux.o $(LDLIBS)
++	$(COMPILE_BUILD) MakeDescAux.cpp
++	$(LINK_BUILD) -o MakeDesc MakeDesc.cpp MakeDescAux.o $(LDLIBS)
+ 	./MakeDesc
+ 	mv mach_desc.h ../include/NTL/mach_desc.h
+ 
+@@ -330,7 +333,7 @@
+ # When this flag is not set, an empty files produced.
+ 
+ setup3:
+-	$(LINK) $(GMP_OPT_INCDIR) -o gen_gmp_aux gen_gmp_aux.cpp $(GMP_OPT_LIBDIR) $(GMP_OPT_LIB) $(LDLIBS)
++	$(LINK_FOR_BUILD) -Wl,-rpath,/usr/local/lib -Wl,-rpath-link,/lib -I/usr/local/include -o gen_gmp_aux gen_gmp_aux.cpp -L/usr/local/lib $(GMP_OPT_LIB) $(LDLIBS)
+ 	./gen_gmp_aux > ../include/NTL/gmp_aux.h
+ 
+ # setup4 runs the wizard
+diff -ruN ntlclean/ntl-10.5.0/src/DoConfig patched_ntl/ntl-10.5.0/src/DoConfig
+--- a/src/DoConfig	2017-07-07 17:05:14.000000000 +0200
++++ b/src/DoConfig	2019-09-13 10:48:38.902132164 +0200
+@@ -43,6 +43,11 @@
+ 
+ 'TUNE'         => 'auto',
+ 
++'CXX_FOR_BUILD' => '$(CXX)',
++'LD_FOR_BUILD' => 'ld',
++'HOST' => '',
++
++
+ );
+ 
+ 
+@@ -222,7 +227,15 @@
+ 
+       system("rm -rf libtool-build") and die "libtool build failed\n";
+       system("cp -R libtool-origin libtool-build") and die "libtool build failed\n";
+-      system("cd libtool-build && ./configure") and die "libtool build failed\n";
++
++      if ($MakeVal{'HOST'} eq '') {
++        system("cd libtool-build && ./configure") and die "libtool build failed\n";
++      }
++      else
++      {
++        print "cd libtool-build && ./configure --host=$MakeVal{'HOST'}";
++        system("cd libtool-build && ./configure --host=$MakeVal{'HOST'}") and die "libtool build failed\n";
++      }
+ 
+       if (-x "libtool-build/libtool") {
+ 	 print "\n*** libtool OK\n\n";
+diff -ruN ntlclean/ntl-10.5.0/src/MakeCheckFeatures patched_ntl/ntl-10.5.0/src/MakeCheckFeatures
+--- a/src/MakeCheckFeatures	2017-07-07 17:05:14.000000000 +0200
++++ b/src/MakeCheckFeatures	2019-09-13 10:48:36.198084967 +0200
+@@ -9,8 +9,8 @@
+    echo "" > "../include/NTL/HAVE_$f.h"
+ 
+    sh RemoveProg CheckFeatures
+-   echo $2 Check$f.cpp -o CheckFeatures $3 >> "CheckFeatures.log" 2>&1
+-   $2 Check$f.cpp -o CheckFeatures $3 >> "CheckFeatures.log" 2>&1
++   echo $2 -L/usr/lib -I/usr/include Check$f.cpp -o CheckFeatures $3 >> "CheckFeatures.log" 2>&1
++   $2 -L/usr/lib -I/usr/include Check$f.cpp -o CheckFeatures $3 >> "CheckFeatures.log" 2>&1
+ 
+    if test -f CheckFeatures
+    then
+diff -ruN ntlclean/ntl-10.5.0/src/mfile patched_ntl/ntl-10.5.0/src/mfile
+--- a/src/mfile	2017-07-07 17:05:14.000000000 +0200
++++ b/src/mfile	2019-09-13 12:04:42.110929859 +0200
+@@ -10,6 +10,7 @@
+ CXX=@{CXX}
+ # A C++ compiler, e.g., g++, CC, xlC
+ 
++CXX_FOR_BUILD=@{CXX_FOR_BUILD}
+ 
+ CXXFLAGS=@{CXXFLAGS}
+ # Flags for the C++ compiler
+@@ -287,7 +288,9 @@
+ 
+ LINK = $(CXX) $(NTL_INCLUDE) $(CPPFLAGS) $(CXXAUTOFLAGS) $(CXXFLAGS) $(LDFLAGS)
+ 
++COMPILE_FOR_BUILD = $(CXX_FOR_BUILD) $(NTL_INCLUDE) $(CPPFLAGS) $(CXXAUTOFLAGS) $(CXXFLAGS) -c
+ 
++LINK_FOR_BUILD = $(CXX_FOR_BUILD) $(NTL_INCLUDE) $(CPPFLAGS) $(CXXAUTOFLAGS) $(CXXFLAGS) $(LDFLAGS)
+ 
+ # 'make all' does a complete make, including all setup.
+ # It also creates the file 'all', which means you should
+@@ -306,8 +309,8 @@
+ # setup1 generates the file ../incluse/NTL/mach_desc.h
+ 
+ setup1:
+-	$(COMPILE) MakeDescAux.cpp
+-	$(LINK) -o MakeDesc MakeDesc.cpp MakeDescAux.o $(LDLIBS)
++	$(COMPILE_FOR_BUILD) MakeDescAux.cpp
++	$(LINK_FOR_BUILD) -o MakeDesc MakeDesc.cpp MakeDescAux.o $(LDLIBS)
+ 	./MakeDesc
+ 	mv mach_desc.h ../include/NTL/mach_desc.h
+ 
+@@ -318,7 +321,7 @@
+ 	echo "*** CheckFeatures log ***" > CheckFeatures.log
+ 	sh MakeGetTime "$(LINK)" "$(LDLIBS)"
+ 	sh MakeGetPID  "$(LINK)" "$(LDLIBS)"
+-	sh MakeCheckFeatures "$(FEATURES)" "$(LINK)" "$(LDLIBS)"
++	sh MakeCheckFeatures "$(FEATURES)" "$(LINK_FOR_BUILD)" "$(LDLIBS)"
+ 
+ # NOTE: to add a feature XXX:
+ #   * add a program CheckXXX.cpp which returns 0 if XXX works, -1 otherwise
+@@ -330,7 +333,8 @@
+ # When this flag is not set, an empty files produced.
+ 
+ setup3:
+-	$(LINK) $(GMP_OPT_INCDIR) -o gen_gmp_aux gen_gmp_aux.cpp $(GMP_OPT_LIBDIR) $(GMP_OPT_LIB) $(LDLIBS)
++	$(LINK_FOR_BUILD) -Wl,-rpath,/usr/local/lib -Wl,-rpath-link,/lib -I/usr/local/include -o gen_gmp_aux gen_gmp_aux.cpp -L/usr/local/lib $(GMP_OPT_LIB) $(LDLIBS)
++	#$(LINK) $(GMP_OPT_INCDIR) -o gen_gmp_aux gen_gmp_aux.cpp $(GMP_OPT_LIBDIR) $(GMP_OPT_LIB) $(LDLIBS)
+ 	./gen_gmp_aux > ../include/NTL/gmp_aux.h
+ 
+ # setup4 runs the wizard
