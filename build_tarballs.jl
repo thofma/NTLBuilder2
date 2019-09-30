@@ -46,7 +46,7 @@ export LDFLAGS=-Wl,-rpath,$prefix/lib
 cd $WORKSPACE/srcdir
 cd ntl-10.5.0/
 cd src
-./configure PREFIX=$prefix DEF_PREFIX=$prefix SHARED=on NTL_THREADS=off NTL_EXCEPTIONS=off NTL_GMP_LIP=on CXXFLAGS=-I$prefix/include TUNE=x86 CXX_FOR_BUILD="$CXX_FOR_BUILD" LD_FOR_BUILD="$LD_FOR_BUILD" CXX="$CXX" HOST=$target
+./configure PREFIX=$prefix DEF_PREFIX=$prefix SHARED=on NTL_THREADS=off NTL_EXCEPTIONS=off NTL_GMP_LIP=on CXXFLAGS="-I$prefix/include -march=core2" TUNE=x86 CXX_FOR_BUILD="$CXX_FOR_BUILD" LD_FOR_BUILD="$LD_FOR_BUILD" CXX="$CXX" HOST=$target 
 make -j${nproc}
 make install
 
